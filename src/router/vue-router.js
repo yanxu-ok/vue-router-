@@ -38,6 +38,15 @@ class VueRouter {
             })
         }
     }
+    go() {
+
+    }
+    back() {
+
+    }
+    push() {
+
+    }
     createMap(routes) {
         return routes.reduce((memo, currect) => {
             memo[currect.path] = currect.component;
@@ -48,11 +57,54 @@ class VueRouter {
 
 //使用vue.use就会调用install方法
 //vue 是构造函数
+//在所有组件中获取同一个路由的实例
 VueRouter.install = (Vue) => {
     //每个组件都有  this.$router / this.$route  在每个组件beforeCreate之前加入属性
     Vue.mixin({
-        beforeCreate() {
-            console.log(111)
+        beforeCreate() { //混合方法
+            if (this.$options && this.$options.router) { //这个就是根组件
+                this._root = this; //把当前实例挂载在_root上
+                this._router = this.$options.router; //把 router实力挂载到_router上
+                //深度监控 如果history中currect属性变化也会刷新视图
+                //this.xxx = this._router.history  状态一边就重新渲染
+                Vue.util.defineReactive(this, 'xxx', this._router.history) 
+            } else {
+                this._root = this.$parent._root;
+                this._router = this.$parent._router;
+            }
+            Object.defineProperty(this, '$router', {
+                get() {
+                    return this._router
+                }
+            })
+            Object.defineProperty(this, '$route', {
+                get() {
+                    return {
+                        currect: this._router.history.currect
+                    }
+                }
+            })
+        },
+    })
+    //全局注册组件
+    Vue.component('router-link', {
+        props:{
+            to:String,
+            tag:String
+        },
+        render(h) {
+            //判断是否是hash模式
+            let mode = this._self._router.mode;
+        return <a href={mode === 'hash'?`#${this.to}`:this.to}>{this.$slots.default}</a>
+        },
+    })
+    Vue.component('router-view', { //根据状态找到路由表进行渲染
+        render(h) {
+            //当状态一边再执行一遍获取state
+            let state = this._self._router.history.currect; //状态
+            let currect = this._self._router.routesMap; //路由表
+            console.log(state)
+            return h(currect[state]);
         },
     })
 }

@@ -10,8 +10,12 @@
 </template>
 <script>
 export default {
+  name:'app',
   data() {
     return {};
+  },
+  mounted(){
+    console.log(this.$router,this.$route)
   }
 };
 </script>

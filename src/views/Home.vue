@@ -5,7 +5,11 @@
 </template>
 
 <script>
+import bus from './bus'
 export default {
-  name: 'Home'
+  name: 'Home',
+  mounted() {
+    bus.$emit('change',1)
+  },
 }
 </script>
